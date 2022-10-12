@@ -14,18 +14,17 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@Transactional
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    UserDao userDao;
+    private UserDao userDao;
     @Autowired
-    RoleService roleService;
-
+    private RoleService roleService;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void addUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.addRole(roleService.getRoleByName("ROLE_USER"));
@@ -43,11 +42,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void updateUser(User user) {
         userDao.updateUser(user);
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
         userDao.deleteUser(id);
     }

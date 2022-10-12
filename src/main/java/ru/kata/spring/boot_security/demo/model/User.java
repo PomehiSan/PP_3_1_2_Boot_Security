@@ -28,19 +28,19 @@ public class User implements UserDetails {
     )
     List<Role> roles;
 
-    @Column
+    @Column(name = "password")
     private String password;
 
-    @Column
+    @Column(name = "username")
     private String username;
 
-    @Column
+    @Column(name = "name")
     private String name;
 
-    @Column
+    @Column(name = "surname")
     private String surname;
 
-    @Column
+    @Column(name = "old")
     private Integer old;
 
     public User() {}

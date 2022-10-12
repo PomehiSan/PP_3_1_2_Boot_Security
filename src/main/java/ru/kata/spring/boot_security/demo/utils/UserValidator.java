@@ -14,7 +14,7 @@ import java.util.Optional;
 public class UserValidator implements Validator {
 
     @Autowired
-    UserDetailServiceImpl userDetailService;
+    private UserDetailServiceImpl userDetailService;
 
     @Override
     public boolean supports(Class<?> clazz) {
