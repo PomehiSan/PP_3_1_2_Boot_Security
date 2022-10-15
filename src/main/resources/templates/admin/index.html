@@ -226,6 +226,7 @@
                                     type="button"
                                     th:name="*{u.id}"
                                     class="user-button user-delete-button"
+                                    th:unless="${u.id == user.id}"
                             >
                                 Delete
                             </button>
