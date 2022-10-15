@@ -41,12 +41,23 @@ public class User implements UserDetails {
     @Column(name = "old")
     private Integer old;
 
+    @Transient
+    private String role;
+
     public User() {}
 
     public User(String name, String surname, Integer old) {
         this.name = name;
         this.surname = surname;
         this.old = old;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getRole() {
+        return role;
     }
 
     public void setId(Long id) {
@@ -136,6 +147,12 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public String getStringRoles() {
+        StringBuilder rolesString = new StringBuilder();
+        getRoles().forEach(role -> rolesString.append(role.getClearName()).append(" "));
+        return rolesString.toString();
     }
 
     @Override

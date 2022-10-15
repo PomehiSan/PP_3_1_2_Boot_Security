@@ -1,46 +1,331 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Users</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>User page</title>
+
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT"
+            crossorigin="anonymous"
+    />
+
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        .b-example-divider {
+            height: 3rem;
+            background-color: rgba(0, 0, 0, 0.1);
+            border: solid rgba(0, 0, 0, 0.15);
+            border-width: 1px 0;
+            box-shadow: inset 0 0.5em 1.5em rgba(0, 0, 0, 0.1),
+            inset 0 0.125em 0.5em rgba(0, 0, 0, 0.15);
+        }
+
+        .b-example-vr {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 100vh;
+        }
+
+        .bi {
+            vertical-align: -0.125em;
+            fill: currentColor;
+        }
+
+        .nav-scroller {
+            position: relative;
+            z-index: 2;
+            height: 2.75rem;
+            overflow-y: hidden;
+        }
+
+        .nav-scroller .nav {
+            display: flex;
+            flex-wrap: nowrap;
+            padding-bottom: 1rem;
+            margin-top: -1px;
+            overflow-x: auto;
+            text-align: center;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/headers.css}" rel="stylesheet"/>
+    <link th:href="@{/css/modals.css}" rel="stylesheet"/>
 </head>
-<body>
-<h1>Users:</h1>
-<table th:border="1">
-    <thead>
-    <tr>
-        <th>id</th>
-        <th>First Name</th>
-        <th>Last Lame</th>
-        <th>Old</th>
-    </tr>
-    </thead>
-    <tbody>
-    <th:block th:each="user : ${users}">
-        <tr>
-            <td th:text="${user.getId()}"></td>
-            <td th:text="${user.getName()}"></td>
-            <td th:text="${user.getSurname()}"></td>
-            <td th:text="${user.getOld()}"></td>
-            <td>
-                <form th:method="GET" th:action="@{/admin/edit/{id}(id=${user.getId()})}">
-                    <input type="submit" value="edit"/>
+<body class="body">
+<header class="p-3 text-bg-dark">
+    <div class="container">
+        <div
+                class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start"
+        >
+            <div class="header_username" th:text="${user.username}"></div>
+            <ul
+                    class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0"
+            >
+                <th:block th:each="role : ${user.getRoles()}">
+                    <li class="nav-link px-2 text-white" th:text="${role.getClearName()}"></li>
+                </th:block>
+            </ul>
+
+            <div class="text-end">
+                <form th:action="@{/logout}" th:method="POST">
+                    <input class="btn btn-outline-light me-2" type="submit" value="Logout">
                 </form>
-            </td>
-            <td>
-                <form th:method="POST" th:action="@{/admin/delete/{id}(id=${user.getId()})}">
-                    <input type="submit" value="remove"/>
+            </div>
+        </div>
+    </div>
+</header>
+<main class="main-content">
+    <div class="block-navigate">
+        <ul class="block-navigat-list">
+            <li class="block-navigate-item block-navigate-item-current">
+                <a> Admin </a>
+            </li>
+            <li class="block-navigate-item">
+                <a href="/user"> User </a>
+            </li>
+        </ul>
+    </div>
+    <div class="block-content">
+        <h1>Admin panel</h1>
+        <ul class="admin-nav">
+            <li class="admin-nav-item admin-nav-item-usertable admin-nav-item-current">
+                <a href="#"> Users table </a>
+            </li>
+            <li class="admin-nav-item admin-nav-item-newuser">
+                <a href="#"> New User </a>
+            </li>
+        </ul>
+        <div class="add-user-panel">
+            <div class="panel-head">Add new user</div>
+            <div class="panel-body panel-body-adduser">
+                <form class="add-user-form" th:method="POST" th:action="@{/auth/adduser}" th:object="${userModel}">
+                    <div style="color: red" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</div>
+                    <div style="color: red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>
+                    <div class="mb-3">
+                        <label for="firstname" class="form-label">First name</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="firstname"
+                                aria-describedby="first name"
+                                th:field="${userModel.name}"
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <label for="secondname" class="form-label">Second name</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="secondname"
+                                aria-describedby="second name"
+                                th:field="*{surname}"
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <label for="age" class="form-label">Age</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="age"
+                                aria-describedby="age"
+                                th:field="*{old}"
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label"
+                        >Email address</label
+                        >
+                        <input
+                                type="email"
+                                class="form-control"
+                                id="exampleInputEmail1"
+                                aria-describedby="emailHelp"
+                                th:field="*{username}"
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputPassword1" class="form-label"
+                        >Password</label
+                        >
+                        <input
+                                type="password"
+                                class="form-control"
+                                id="exampleInputPassword1"
+                                th:field="*{password}"
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" th:field="${userModel.role}">
+                            <option th:value="${roles.get(1)}" th:text="${roles.get(1).getClearName()}" selected></option>
+                                <option
+                                        th:each="r : ${roles}"
+                                        th:unless="${r.getId()} == 1"
+                                        th:value="${r.getName()}"
+                                        th:text="${r.getClearName()}"
+                                ></option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
-            </td>
-        </tr>
-    </th:block>
-    </tbody>
-</table>
-<form th:action="@{/logout}" th:method="POST">
-    <input type="submit" value="Logout">
-</form>
-<br/>
-<hr/>
+            </div>
+        </div>
+        <div class="user-table admin-panel-current">
+            <div class="csrf" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"></div>
+            <div class="panel-head">All users</div>
+            <div class="panel-body">
+                <table class="table table-striped">
+                    <thead>
+                    <th>ID</th>
+                    <th>First name</th>
+                    <th>Last name</th>
+                    <th>Age</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                    </thead>
+                    <tbody class="user-table-list" th:each="u : ${users}">
+                    <tr class="user-table-item" th:classappend="'user-' + *{u.id}">
+                        <td class="user-id" th:text="*{u.id}"></td>
+                        <td class="user-name" th:text="*{u.name}"></td>
+                        <td class="user-surname" th:text="*{u.surname}"></td>
+                        <td class="user-old" th:text="*{u.old}"></td>
+                        <td class="user-username" th:text="*{u.username}"></td>
+                        <td th:text="*{u.getStringRoles()}"></td>
+                        <td>
+                            <button
+                                    type="button"
+                                    th:name="*{u.id}"
+                                    class="user-button user-edit-button"
+                            >
+                                Edit
+                            </button>
+                        </td>
+                        <td>
+                            <button
+                                    type="button"
+                                    th:name="*{u.id}"
+                                    class="user-button user-delete-button"
+                            >
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+<div class="modal-body modal-hidden">
+    <form class="add-user-form modal-form" th:method="POST" th:action="@{/admin/edit/}" th:object="${userModel}">
+        <div style="color: red" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</div>
+        <div style="color: red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>
+        <div class="mb-3">
+            <label for="id-modal" class="form-label">ID</label>
+            <input
+                    type="text"
+                    class="form-control modal-id"
+                    id="id-modal"
+                    aria-describedby="id"
+                    th:field="${userModel.id}"
+                    readonly
+            />
+        </div>
+        <div class="mb-3">
+            <label for="firstname-modal" class="form-label">First name</label>
+            <input
+                    type="text"
+                    class="form-control modal-name"
+                    id="firstname-modal"
+                    aria-describedby="first name"
+                    th:field="${userModel.name}"
+            />
+        </div>
+        <div class="mb-3">
+            <label for="secondname-modal" class="form-label">Second name</label>
+            <input
+                    type="text"
+                    class="form-control modal-surname"
+                    id="secondname-modal"
+                    aria-describedby="second name"
+                    th:field="${userModel.surname}"
+            />
+        </div>
+        <div class="mb-3">
+            <label for="age-modal" class="form-label">Age</label>
+            <input
+                    type="text"
+                    class="form-control modal-age"
+                    id="age-modal"
+                    aria-describedby="age"
+                    th:field="${userModel.old}"
+            />
+        </div>
+        <div class="mb-3">
+            <label for="exampleInputEmail1-modal" class="form-label"
+            >Email address</label
+            >
+            <input
+                    type="email"
+                    class="form-control modal-username"
+                    id="exampleInputEmail1-modal"
+                    aria-describedby="emailHelp"
+                    th:field="${userModel.username}"
+            />
+        </div>
+        <div class="mb-3">
+            <label for="exampleInputPassword1-modal" class="form-label"
+            >Password</label
+            >
+            <input
+                    type="password"
+                    class="form-control"
+                    id="exampleInputPassword1-modal"
+                    th:field="${userModel.password}"
+            />
+        </div>
+        <div class="mb-3">
+            <label for="role-modal" class="form-label">Role</label>
+            <select class="form-select" id="role-modal" th:field="${userModel.role}">
+                <option th:value="${roles.get(1).name}" th:text="${roles.get(1).getClearName()}" selected></option>
+                <option
+                        th:each="r : ${roles}"
+                        th:unless="${r.getId()} == 1"
+                        th:value="${r.getName()}"
+                        th:text="${r.getClearName()}"
+                ></option>
+            </select>
+        </div>
+        <button class="btn btn-primary btn-primary-close">Close</button>
+        <button type="submit" class="btn btn-primary btn-primary-accept">Edit</button>
+    </form>
+</div>
+<script th:src="@{/js/script.js}"></script>
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8"
+        crossorigin="anonymous"
+></script>
 </body>
 </html>
