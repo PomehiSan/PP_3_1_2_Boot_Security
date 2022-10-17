@@ -1,5 +1,7 @@
 package ru.kata.spring.boot_security.demo.dao;
 
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Repository;
 import ru.kata.spring.boot_security.demo.model.User;
@@ -20,11 +22,13 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    @EntityGraph(attributePaths = "roles")
     public User getUserById(Long id) {
         return entityManager.find(User.class, id);
     }
 
     @Override
+    @EntityGraph(attributePaths = "roles")
     public List<User> getUsers() {
         return entityManager.createQuery("select u from User u").getResultList();
     }

@@ -76,13 +76,14 @@
         <div
                 class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start"
         >
-            <div class="header_username" th:text="${user.username}"></div>
+            <div class="header_username"></div>
             <ul
-                    class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0"
+                    class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 header_username_roles_list"
             >
-                <th:block th:each="role : ${user.getRoles()}">
-                    <li class="nav-link px-2 text-white" th:text="${role.getClearName()}"></li>
-                </th:block>
+                <template class="header_roles_template">
+                    <li class="nav-link px-2 text-white header_username_roles_item"></li>
+                </template>
+
             </ul>
 
             <div class="text-end">
@@ -117,9 +118,7 @@
         <div class="add-user-panel">
             <div class="panel-head">Add new user</div>
             <div class="panel-body panel-body-adduser">
-                <form class="add-user-form" th:method="POST" th:action="@{/auth/adduser}" th:object="${userModel}">
-                    <div style="color: red" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</div>
-                    <div style="color: red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>
+                <form class="add-user-form add-user-form-admin" name="addUserAdmin" method="POST" action="/api/admin/adduser">
                     <div class="mb-3">
                         <label for="firstname" class="form-label">First name</label>
                         <input
@@ -127,7 +126,7 @@
                                 class="form-control"
                                 id="firstname"
                                 aria-describedby="first name"
-                                th:field="${userModel.name}"
+                                name="name"
                         />
                     </div>
                     <div class="mb-3">
@@ -137,7 +136,7 @@
                                 class="form-control"
                                 id="secondname"
                                 aria-describedby="second name"
-                                th:field="*{surname}"
+                                name="surname"
                         />
                     </div>
                     <div class="mb-3">
@@ -147,7 +146,7 @@
                                 class="form-control"
                                 id="age"
                                 aria-describedby="age"
-                                th:field="*{old}"
+                                name="old"
                         />
                     </div>
                     <div class="mb-3">
@@ -159,7 +158,7 @@
                                 class="form-control"
                                 id="exampleInputEmail1"
                                 aria-describedby="emailHelp"
-                                th:field="*{username}"
+                                name="username"
                         />
                     </div>
                     <div class="mb-3">
@@ -170,19 +169,15 @@
                                 type="password"
                                 class="form-control"
                                 id="exampleInputPassword1"
-                                th:field="*{password}"
+                                name="password"
                         />
                     </div>
                     <div class="mb-3">
                         <label for="role" class="form-label">Role</label>
-                        <select class="form-select" id="role" th:field="${userModel.role}">
-                            <option th:value="${roles.get(1)}" th:text="${roles.get(1).getClearName()}" selected></option>
-                                <option
-                                        th:each="r : ${roles}"
-                                        th:unless="${r.getId()} == 1"
-                                        th:value="${r.getName()}"
-                                        th:text="${r.getClearName()}"
-                                ></option>
+                        <select class="form-select add-form-select" id="role" name="role">
+                            <template id="add-form-select-item-template">
+                                <option class="add-form-select-item"></option>
+                            </template>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
@@ -190,7 +185,6 @@
             </div>
         </div>
         <div class="user-table admin-panel-current">
-            <div class="csrf" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"></div>
             <div class="panel-head">All users</div>
             <div class="panel-body">
                 <table class="table table-striped">
@@ -204,34 +198,33 @@
                     <th>Edit</th>
                     <th>Delete</th>
                     </thead>
-                    <tbody class="user-table-list" th:each="u : ${users}">
-                    <tr class="user-table-item" th:classappend="'user-' + *{u.id}">
-                        <td class="user-id" th:text="*{u.id}"></td>
-                        <td class="user-name" th:text="*{u.name}"></td>
-                        <td class="user-surname" th:text="*{u.surname}"></td>
-                        <td class="user-old" th:text="*{u.old}"></td>
-                        <td class="user-username" th:text="*{u.username}"></td>
-                        <td th:text="*{u.getStringRoles()}"></td>
-                        <td>
-                            <button
-                                    type="button"
-                                    th:name="*{u.id}"
-                                    class="user-button user-edit-button"
-                            >
-                                Edit
-                            </button>
-                        </td>
-                        <td>
-                            <button
-                                    type="button"
-                                    th:name="*{u.id}"
-                                    class="user-button user-delete-button"
-                                    th:unless="${u.id == user.id}"
-                            >
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
+                    <tbody class="user-table-list">
+                    <template id="user-table-item-template">
+                        <tr class="user-table-item">
+                            <td class="user-id"></td>
+                            <td class="user-name"></td>
+                            <td class="user-surname"></td>
+                            <td class="user-old"></td>
+                            <td class="user-username"></td>
+                            <td class="user-stringroles"></td>
+                            <td>
+                                <button
+                                        type="button"
+                                        class="user-button user-edit-button"
+                                >
+                                    Edit
+                                </button>
+                            </td>
+                            <td>
+                                <button
+                                        type="button"
+                                        class="user-button user-delete-button"
+                                >
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
                     </tbody>
                 </table>
             </div>
@@ -239,9 +232,7 @@
     </div>
 </main>
 <div class="modal-body modal-hidden">
-    <form class="add-user-form modal-form" th:method="POST" th:action="@{/admin/edit/}" th:object="${userModel}">
-        <div style="color: red" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</div>
-        <div style="color: red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>
+    <form class="add-user-form modal-form" name="editUserForm" method="POST" action="/api/admin/edit/">
         <div class="mb-3">
             <label for="id-modal" class="form-label">ID</label>
             <input
@@ -249,7 +240,7 @@
                     class="form-control modal-id"
                     id="id-modal"
                     aria-describedby="id"
-                    th:field="${userModel.id}"
+                    name="id"
                     readonly
             />
         </div>
@@ -260,7 +251,7 @@
                     class="form-control modal-name"
                     id="firstname-modal"
                     aria-describedby="first name"
-                    th:field="${userModel.name}"
+                    name="name"
             />
         </div>
         <div class="mb-3">
@@ -270,7 +261,7 @@
                     class="form-control modal-surname"
                     id="secondname-modal"
                     aria-describedby="second name"
-                    th:field="${userModel.surname}"
+                    name="surname"
             />
         </div>
         <div class="mb-3">
@@ -280,7 +271,7 @@
                     class="form-control modal-age"
                     id="age-modal"
                     aria-describedby="age"
-                    th:field="${userModel.old}"
+                    name="old"
             />
         </div>
         <div class="mb-3">
@@ -292,7 +283,7 @@
                     class="form-control modal-username"
                     id="exampleInputEmail1-modal"
                     aria-describedby="emailHelp"
-                    th:field="${userModel.username}"
+                    name="username"
             />
         </div>
         <div class="mb-3">
@@ -303,25 +294,23 @@
                     type="password"
                     class="form-control"
                     id="exampleInputPassword1-modal"
-                    th:field="${userModel.password}"
+                    name="password"
             />
         </div>
         <div class="mb-3">
             <label for="role-modal" class="form-label">Role</label>
-            <select class="form-select" id="role-modal" th:field="${userModel.role}">
-                <option th:value="${roles.get(1).name}" th:text="${roles.get(1).getClearName()}" selected></option>
-                <option
-                        th:each="r : ${roles}"
-                        th:unless="${r.getId()} == 1"
-                        th:value="${r.getName()}"
-                        th:text="${r.getClearName()}"
-                ></option>
+            <select class="form-select" id="role-modal" name="role">
+                <template id="modal-form-select-item-template">
+                    <option class="form-select-item"></option>
+                </template>
             </select>
         </div>
-        <button class="btn btn-primary btn-primary-close">Close</button>
+        <button type="button" class="btn btn-primary btn-primary-close">Close</button>
         <button type="submit" class="btn btn-primary btn-primary-accept">Edit</button>
     </form>
 </div>
+
+<script th:src="@{/js/currentUser.js}"></script>
 <script th:src="@{/js/script.js}"></script>
 <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"

@@ -4,20 +4,49 @@ const userTable = document.querySelector('.user-table');
 const addUserPanelButton = document.querySelector('.admin-nav-item-newuser');
 const userTableButton = document.querySelector('.admin-nav-item-usertable');
 
-const editUserButtons = document.querySelectorAll('.user-edit-button');
-const deleteUserButtons = document.querySelectorAll('.user-delete-button');
+const userTableList = document.querySelector('.user-table-list');
+const userTableItemTemplate = document.querySelector('#user-table-item-template').content.children[0];
 
-const modalBody = document.querySelector('.modal-body');
-const modalForm = modalBody.querySelector('.modal-form');
-const modalID = modalBody.querySelector('.modal-id');
-const modalName = modalBody.querySelector('.modal-name');
-const modalSurname = modalBody.querySelector('.modal-surname');
-const modalAge = modalBody.querySelector('.modal-age');
-const modalUsername = modalBody.querySelector('.modal-username');
-const modalCloseButton = modalBody.querySelector('.btn-primary-close');
-const modalAcceptButton = modalBody.querySelector('.btn-primary-accept');
+const addUserFormAdmin = document.querySelector('.add-user-form-admin');
+const addUserFormSelect = addUserFormAdmin.querySelector('.add-form-select');
+const addUserFormSelectOptionTemplate = addUserFormSelect.querySelector('#add-form-select-item-template').content.children[0];
 
+const getRolesForSelectAdminForm = async () => {
+    const docFragment = document.createDocumentFragment()
 
+    const response = await fetch("/getRoles");
+    if (response.ok) {
+        const roles = await response.json();
+        roles.forEach(role => {
+            const {name, clearName} = role;
+            const clone = addUserFormSelectOptionTemplate.cloneNode(true);
+            clone.value = name;
+            clone.textContent = clearName;
+            docFragment.appendChild(clone);
+        })
+        addUserFormSelect.appendChild(docFragment);
+    }
+}
+
+const addUserFromAdmin = () => {
+    getRolesForSelectAdminForm();
+    return (evt) => {
+        evt.preventDefault();
+
+        const addUserFormAdminData = document.forms['addUserAdmin'];
+        const jsonForm = JSON.stringify({
+            name: addUserFormAdminData.name.value,
+            surname: addUserFormAdminData.surname.value,
+            old: addUserFormAdminData.old.value,
+            username: addUserFormAdminData.username.value,
+            password: addUserFormAdminData.password.value,
+            role: addUserFormAdminData.role.value
+        });
+        addUser('/api/admin/adduser', addUserFormAdmin, jsonForm, userTablePanelActivate);
+    }
+}
+
+addUserFormAdmin.addEventListener('submit', addUserFromAdmin());
 
 const addUserPanelActivate = () => {
     userTableButton.classList.toggle('admin-nav-item-current');
@@ -43,83 +72,200 @@ userTableButton.addEventListener('click', (evt) => {
     userTablePanelActivate();
 });
 
-const token = document.querySelector('.csrf').getAttribute('value');
-console.log(token)
+let userButtonsController = new AbortController();
+let modalCloseButtonsController = new AbortController();
 
-const deleteUser = (id) => {
-    return () => {
-        secure_fetch(`/admin/delete/${id}`).then(res => {
-            if (res.redirected) {
-                window.location.href = res.url
-            }
-        }).finally()
+const postForm = (url, jsonForm) => {
+    const response = fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: jsonForm
+    });
+    return response;
+};
+
+const clearTableUsers = () => {
+    userButtonsController.abort();
+    userButtonsController = new AbortController();
+    const items = userTableList.querySelectorAll('.user-table-item');
+    items.forEach(item => {
+        item.remove();
+    })
+}
+
+const generateTableUsers = async () => {
+    const response = await fetch("/getUsers");
+
+    if (response.ok) {
+        const users = await response.json();
+        users.forEach(user => {
+            addUserToTable(user);
+        })
+
     }
 }
 
-const secure_fetch = (token => {
-    const CSRF_HEADER = 'X-CSRF-TOKEN';
-    return (url) => {
-        const response = fetch(url, {
-            method: 'POST',
-            redirect: 'follow',
-            headers: {
-                [CSRF_HEADER]: token
-            }
-        });
-        response.then(res => {
-            token = res.headers[CSRF_HEADER]
-        });
-        return response;
-    };
-})(token);
-
-deleteUserButtons.forEach(deleteButton =>  {
-    deleteButton.addEventListener('click', deleteUser(deleteButton.getAttribute('name')));
-})
-
-const modalOpen = (id) => {
-    modalBody.classList.remove('modal-hidden');
-    const editUser = userTable.querySelector(`.user-${id}`);
-    console.log(editUser)
-    const editID = editUser.querySelector('.user-id');
-    const editName = editUser.querySelector('.user-name');
-    const editSurname = editUser.querySelector('.user-surname');
-    const editAge = editUser.querySelector('.user-old');
-    const editUsername = editUser.querySelector('.user-username');
-
-    modalID.setAttribute('value', editID.textContent);
-    modalName.setAttribute('value', editName.textContent)
-    modalSurname.setAttribute('value', editSurname.textContent);
-    modalAge.setAttribute('value', editAge.textContent);
-    modalUsername.setAttribute('value', editUsername.textContent);
-
-    modalCloseButton.addEventListener('click', modalClose);
-    modalAcceptButton.addEventListener('click', acceptEdit(id));
+const addUserToTable = (user) => {
+    const {
+        id, name, surname, old, username, stringRoles
+    } = user;
+    const cloneNodeTableItem = userTableItemTemplate.cloneNode(true);
+    cloneNodeTableItem.querySelector('.user-id').textContent = id;
+    cloneNodeTableItem.querySelector('.user-name').textContent = name;
+    cloneNodeTableItem.querySelector('.user-surname').textContent = surname;
+    cloneNodeTableItem.querySelector('.user-old').textContent = old;
+    cloneNodeTableItem.querySelector('.user-username').textContent = username;
+    cloneNodeTableItem.querySelector('.user-stringroles').textContent = stringRoles;
+    cloneNodeTableItem.querySelector('.user-edit-button')
+        .addEventListener('click', modalOpen(user), {signal: userButtonsController.signal})
+    cloneNodeTableItem.querySelector('.user-delete-button')
+        .addEventListener('click', deleteUserEvent(user), {signal: userButtonsController.signal})
+    userTableList.appendChild(cloneNodeTableItem);
 }
 
-const modalClose = (evt) => {
-    evt.preventDefault()
-    modalBody.classList.add('modal-hidden');
-
-    modalCloseButton.removeEventListener('click', modalClose);
-    modalAcceptButton.removeEventListener('click', acceptEdit);
-}
-
-const editUser = (id) => {
+const deleteUserEvent = (user) => {
     return () => {
-        modalOpen(id);
+        deleteUser(user);
     }
 }
 
-editUserButtons.forEach(editButton => {
-    editButton.addEventListener('click', editUser(editButton.getAttribute('name')));
-})
+const deleteUser = async (user) => {
+    const response = await fetch('/api/admin/delete/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(user)
+    });
+    if (response.ok) {
+        clearTableUsers();
+        generateTableUsers();
+    }
+}
 
-const acceptEdit = (id) => {
-    // modalForm.setAttribute('action', `/admin/edit/${id}`)
-    return () => {
-        modalCloseButton.removeEventListener('click', modalClose);
-        modalAcceptButton.removeEventListener('click', acceptEdit);
+generateTableUsers();
+
+const modalCloseEvent = () => {
+    const modalCloseEventUse = (evt) => {
+        evt.preventDefault()
         modalClose();
     }
+    return modalCloseEventUse;
 }
+
+const clearFormValues = (form) => {
+    const inputs = form.querySelectorAll('input');
+    inputs.forEach(input => input.value = '');
+}
+
+const modalClose = () => {
+    const modalBody = document.querySelector('.modal-body');
+    const modalForm = modalBody.querySelector('.modal-form');
+
+    if (!modalBody.classList.contains('modal-hidden')) {
+        modalCloseButtonsController.abort();
+        modalCloseButtonsController = new AbortController();
+        clearFormValues(modalForm);
+        modalBody.classList.add('modal-hidden');
+    }
+}
+
+const modalOpen = (user) => {
+    return () => {
+        const {
+            id, name, surname, old, username
+        } = user;
+
+        const modalBody = document.querySelector('.modal-body');
+
+        if (modalBody.classList.contains('modal-hidden')) {
+
+            const modalForm = modalBody.querySelector('.modal-form');
+            const modalID = modalBody.querySelector('.modal-id');
+            const modalName = modalBody.querySelector('.modal-name');
+            const modalSurname = modalBody.querySelector('.modal-surname');
+            const modalAge = modalBody.querySelector('.modal-age');
+            const modalUsername = modalBody.querySelector('.modal-username');
+            const modalCloseButton = modalBody.querySelector('.btn-primary-close');
+
+            modalBody.classList.remove('modal-hidden');
+
+            modalID.value = id;
+            modalName.value = name;
+            modalSurname.value = surname;
+            modalAge.value = old;
+            modalUsername.value = username;
+
+            generateRolesSelect(id, modalBody);
+
+            modalCloseButton.addEventListener('click', modalCloseEvent(), {signal: modalCloseButtonsController.signal});
+            modalForm.addEventListener('submit', acceptEditEvent(), {signal: modalCloseButtonsController.signal});
+        }
+    }
+}
+
+const generateRolesSelect = async (id, modalBody) => {
+
+    const modalFormSelectItemTemplate = modalBody.querySelector('#modal-form-select-item-template').content.children[0];
+    const modalSelect = modalBody.querySelector('.form-select');
+    const modalSelectItems = modalBody.querySelectorAll('.form-select-item');
+
+    for (let i = 0; i < modalSelectItems.length; i++) {
+        modalSelectItems[i].remove();
+    }
+
+    const responseRoles = await fetch("/getRoles");
+    const responseUser = await fetch(`/getUser/${id}`);
+    if (responseRoles.ok && responseUser.ok) {
+        const roles = await responseRoles.json();
+        const user = await responseUser.json();
+        const tableFragment = document.createDocumentFragment();
+        roles.forEach(role => {
+            const {id, name, clearName} = role;
+            const cloneModalFormSelectItem = modalFormSelectItemTemplate.cloneNode(true);
+            cloneModalFormSelectItem.textContent = clearName;
+            cloneModalFormSelectItem.value = name;
+            const idRoleUser = user['roles'][user['roles'].length - 1]['id'];
+            if (id === idRoleUser) {
+                cloneModalFormSelectItem.selected = true;
+            }
+            tableFragment.appendChild(cloneModalFormSelectItem);
+        });
+        modalSelect.appendChild(tableFragment);
+    }
+}
+
+const addUser = async (url, form, jsonForm, callBackMethod) => {
+    const response = await postForm(url, jsonForm);
+    if (response.ok) {
+        clearTableUsers();
+        generateTableUsers();
+        clearFormValues(form);
+        callBackMethod();
+    }
+}
+
+const acceptEditEvent = () => {
+    const acceptEdit = (evt) => {
+        evt.preventDefault();
+        const modalForm = document.querySelector('.modal-form');
+        const formData = document.forms['editUserForm'];
+        const jsonForm = JSON.stringify({
+            id: formData.id.value,
+            name: formData.name.value,
+            surname: formData.surname.value,
+            old: formData.old.value,
+            username: formData.username.value,
+            password: formData.password.value,
+            role: formData.role.value
+        });
+        addUser('/api/admin/edit/', modalForm, jsonForm, modalClose);
+    }
+    return acceptEdit;
+}
+
+
+
+

@@ -18,15 +18,6 @@ public class Role implements GrantedAuthority {
     @Column(unique = true, name = "name", nullable = false, length = 50)
     String name;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @Fetch(value = FetchMode.JOIN)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    Set<User> users;
-
     public Role() {}
 
     public Role(Long id, String name) {
@@ -48,21 +39,6 @@ public class Role implements GrantedAuthority {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Set<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(Set<User> users) {
-        this.users = users;
-    }
-
-    public void addUser(User user) {
-        if (users == null) {
-            users = new HashSet<>();
-        }
-        users.add(user);
     }
 
     @Override

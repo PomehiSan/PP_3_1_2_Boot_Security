@@ -64,6 +64,8 @@ public class UserServiceImpl implements UserService {
             currentUserRoles.clear();
             currentUserRoles.add(newRole);
             newUser.setRoles(currentUserRoles);
+        } else {
+            newUser.setRoles(currentUserRoles);
         }
 
         userDao.updateUser(newUser);

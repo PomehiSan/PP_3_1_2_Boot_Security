@@ -1,11 +1,14 @@
 package ru.kata.spring.boot_security.demo.model;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.kata.spring.boot_security.demo.utils.CustomAuthorityDeserializer;
 
 import javax.persistence.*;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.*;
 
 @Entity
@@ -17,29 +20,36 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "username")
+    @NotEmpty(message = "username null")
+    @Size(max = 100, message = "username size error")
+    private String username;
+
+    @Column(name = "name")
+    @NotEmpty(message = "name null")
+    @Size(min = 2, max = 30, message = "name size error")
+    private String name;
+
+    @Column(name = "surname")
+    @NotEmpty(message = "name null")
+    @Size(min = 2, max = 30, message = "name size error")
+    private String surname;
+
+    @Column(name = "old")
+    @NotEmpty(message = "age null")
+    @Min(value = 0, message = "age error")
+    private Integer old;
+
+    @Column(name = "password")
+    private String password;
+
     @ManyToMany(fetch = FetchType.LAZY)
-    @Fetch(value = FetchMode.JOIN)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     Set<Role> roles;
-
-    @Column(name = "password")
-    private String password;
-
-    @Column(name = "username")
-    private String username;
-
-    @Column(name = "name")
-    private String name;
-
-    @Column(name = "surname")
-    private String surname;
-
-    @Column(name = "old")
-    private Integer old;
 
     @Transient
     private String role;
@@ -84,6 +94,7 @@ public class User implements UserDetails {
     }
 
     @Override
+    @JsonDeserialize(using = CustomAuthorityDeserializer.class)
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles;
     }

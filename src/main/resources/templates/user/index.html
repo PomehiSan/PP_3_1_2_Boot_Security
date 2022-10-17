@@ -76,13 +76,14 @@
         <div
                 class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start"
         >
-            <div class="header_username" th:text="${user.username}"></div>
+            <div class="header_username"></div>
             <ul
-                    class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0"
+                    class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 header_username_roles_list"
             >
-                <th:block th:each="role : ${user.getRoles()}">
-                    <li class="nav-link px-2 text-white" th:text="${role.getClearName()}"></li>
-                </th:block>
+                <template class="header_roles_template">
+                    <li class="nav-link px-2 text-white header_username_roles_item"></li>
+                </template>
+
             </ul>
 
             <div class="text-end">
@@ -124,12 +125,12 @@
                     </thead>
                     <tbody class="user-table-list">
                     <tr class="user-table-item">
-                        <td th:text="${user.id}"></td>
-                        <td th:text="${user.name}"></td>
-                        <td th:text="${user.surname}"></td>
-                        <td th:text="${user.old}"></td>
-                        <td th:text="${user.username}"></td>
-                        <td th:text="${user.getStringRoles()}"></td>
+                        <td class="id"></td>
+                        <td class="name"></td>
+                        <td class="surname"></td>
+                        <td class="old"></td>
+                        <td class="username"></td>
+                        <td class="roles"></td>
                     </tr>
                     </tbody>
                 </table>
@@ -138,6 +139,7 @@
     </div>
 </main>
 
+<script th:src="@{/js/currentUser.js}"></script>
 <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8"
