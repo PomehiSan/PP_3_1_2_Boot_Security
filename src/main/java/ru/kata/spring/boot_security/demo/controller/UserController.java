@@ -6,7 +6,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
@@ -37,7 +36,7 @@ public class UserController {
     }
 
     @GetMapping("/admin")
-    public String printUsers(@ModelAttribute(value = "userModel") User userModel, @ModelAttribute(value = "role") Role role, ModelMap model) {
+    public String printUsers(@ModelAttribute(value = "userModel") User userModel, ModelMap model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
         model.put("user", user);
