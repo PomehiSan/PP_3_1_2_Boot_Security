@@ -66,13 +66,16 @@ a {
   padding-right: 15px;
   min-height: 40px;
   color: royalblue;
-
 }
 
 .block-navigate-item-current {
   color: white;
   background-color: royalblue;
   border-radius: 3px;
+}
+
+.block-navigate-item-current a {
+  color: white;
 }
 
 .admin-nav {
