@@ -52,7 +52,7 @@ public class UserController {
     }
 
     @GetMapping("/admin")
-    public String printUsers(@ModelAttribute(value = "userModel") User userModel, @ModelAttribute(value = "role") Role role, ModelMap model) {
+    public String printUsers() {
         return "admin/index";
     }
 
