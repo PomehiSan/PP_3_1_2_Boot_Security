@@ -1,12 +1,17 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
+import ru.kata.spring.boot_security.demo.utils.UserNotCreatedException;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -36,21 +41,45 @@ public class UserRestController {
     }
 
     @PostMapping("/api/admin/delete/")
-    public User deleteUser(@RequestBody User user) {
+    public ResponseEntity<HttpStatus> deleteUser(@RequestBody User user) {
         System.out.println(user.toString());
         userService.deleteUser(user.getId());
-        return null;
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @PostMapping("/api/admin/adduser")
-    public User addUser(@RequestBody User user) {
+    public ResponseEntity<HttpStatus> addUser(@RequestBody @Valid User user, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder str = new StringBuilder();
+
+            bindingResult.getFieldErrors().forEach(error -> {
+                str.append(error.getField()).append(" - ").append(error.getDefaultMessage()).append(";\n");
+            });
+
+            throw new UserNotCreatedException(str.toString());
+        }
         userService.addUser(user);
-        return user;
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @PostMapping("/api/admin/edit/")
-    public User editUser(@RequestBody User user) {
+    public ResponseEntity<HttpStatus> editUser(@RequestBody @Valid User user, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder str = new StringBuilder();
+
+            bindingResult.getFieldErrors().forEach(error -> {
+                str.append(error.getField()).append(" - ").append(error.getDefaultMessage()).append(";\n");
+            });
+
+            throw new UserNotCreatedException(str.toString());
+        }
         userService.updateUser(user);
-        return user;
+        return ResponseEntity.ok(HttpStatus.OK);
     }
+
+    @ExceptionHandler
+    private ResponseEntity<String> handlerException(UserNotCreatedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
 }
