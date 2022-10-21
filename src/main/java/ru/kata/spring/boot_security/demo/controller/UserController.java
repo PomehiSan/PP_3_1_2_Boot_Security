@@ -27,25 +27,6 @@ public class UserController {
         return "/auth/login";
     }
 
-    @GetMapping("/currentUser")
-    @ResponseBody
-    public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return userService.getUserById(((User) authentication.getPrincipal()).getId());
-    }
-
-    @GetMapping("/getUser/{id}")
-    @ResponseBody
-    public User getUser(@PathVariable(value = "id") long id) {
-        return userService.getUserById(id);
-    }
-
-    @GetMapping("/getUsers")
-    @ResponseBody
-    public List<User> getUsers() {
-        return userService.getUsers();
-    }
-
     @GetMapping("/user")
     public String userDetails() {
         return "user/index";
@@ -54,28 +35,6 @@ public class UserController {
     @GetMapping("/admin")
     public String printUsers() {
         return "admin/index";
-    }
-
-    @PostMapping("/api/admin/delete/")
-    @ResponseBody
-    public User deleteUser(@RequestBody User user) {
-        System.out.println(user.toString());
-        userService.deleteUser(user.getId());
-        return null;
-    }
-
-    @PostMapping("/api/admin/adduser")
-    @ResponseBody
-    public User addUser(@RequestBody User user) {
-        userService.addUser(user);
-        return user;
-    }
-
-    @PostMapping("/api/admin/edit/")
-    @ResponseBody
-    public User editUser(@RequestBody User user) {
-        userService.updateUser(user);
-        return user;
     }
 
 }
