@@ -1,26 +1,31 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.dao.UserDao;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.repository.UserRepository;
 
-import javax.persistence.NoResultException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserDao userDao;
-    @Autowired
-    private RoleService roleService;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+
+    private final RoleService roleService;
+
+    private final PasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     @Transactional
@@ -30,17 +35,23 @@ public class UserServiceImpl implements UserService {
         if (user.getRole() != null && !user.getRoles().contains(roleService.getRoleByName(user.getRole()))) {
             user.addRole(roleService.getRoleByName(user.getRole()));
         }
-        userDao.addUser(user);
+        userRepository.save(user);
     }
 
     @Override
     public User getUserById(Long id) {
-        return userDao.getUserById(id);
+        Optional<User> user = userRepository.findById(id);
+
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("User not found!");
+        }
+
+        return user.get();
     }
 
     @Override
     public List<User> getUsers() {
-        return userDao.getUsers();
+        return userRepository.findAll();
     }
 
     @Override
@@ -48,7 +59,7 @@ public class UserServiceImpl implements UserService {
     public void updateUser(User newUser) {
         long id = newUser.getId();
         Role newRole = roleService.getRoleByName(newUser.getRole());
-        User currentUser = userDao.getUserById(id);
+        User currentUser = getUserById(id);
         Set<Role> currentUserRoles = currentUser.getRoles();
 
         if (newUser.getPassword() == null || newUser.getPassword().isEmpty()) {
@@ -68,12 +79,12 @@ public class UserServiceImpl implements UserService {
             newUser.setRoles(currentUserRoles);
         }
 
-        userDao.updateUser(newUser);
+        userRepository.save(newUser);
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        userDao.deleteUser(id);
+        userRepository.deleteById(id);
     }
 }
